@@ -48,8 +48,8 @@ E:\DATASET\HEVC_RAW
 │      SlideShow_1280x720_20.yuv
 ```
 After the crop, every sub ClassX dir will generating several subdirectories corresponding to .yuv file name in which all frames are cropped to size of X64. The frames are stored in .png losslessly.
-```
-E:\DATASET\HEVC
+```angular2html
+E:\DATASET\HEVC_raw
 ├─ClassA
 │  ├─PeopleOnStreet_2560x1600_30_crop
 │  └─Traffic_2560x1600_30_crop
