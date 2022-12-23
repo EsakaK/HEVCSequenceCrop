@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 
 def main(argv):
-    hevc_root_path = r"E:\dataset\HEVC" # the line you need to change
+    hevc_root_path = r"E:\dataset\HEVC_raw"  # the line you need to change
     cd_command = "cd {} && "
     crop_command = "ffmpeg -pix_fmt yuv420p  -s {} -i  {} -vf crop={}:0:0 {}"
     mkdir_command = "mkdir {}"
@@ -50,7 +50,7 @@ def main(argv):
             os.system(yuv2png_command_cur)
 
 
-def return_crop_size(width, height, size=64):
+def return_crop_size(width, height, size=64, crop_flag=False):
     """
     Args:
         size: minimal crop size
@@ -59,8 +59,12 @@ def return_crop_size(width, height, size=64):
     """
     width = int(width)
     height = int(height)
-    crop_width = width // size * size
-    crop_height = height // size * size
+    if not crop_flag:
+        crop_width = width
+        crop_height = height
+    else:
+        crop_width = width // size * size
+        crop_height = height // size * size
     if crop_height == height and crop_width == width:
         flag = False
     else:
