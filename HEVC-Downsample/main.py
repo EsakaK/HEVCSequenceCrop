@@ -1,9 +1,9 @@
-import tqdm
 import os
 import torch
 from PIL import Image
 from core import imresize
 from torchvision import transforms
+from tqdm import tqdm
 
 to_tensor = transforms.ToTensor()
 to_pil = transforms.ToPILImage()
@@ -75,7 +75,7 @@ def resize_one_class(c_path, new_c_path):
 
 
 def resize_hevc(root_path, new_path):
-    for class_name in os.listdir(root_path):
+    for class_name in tqdm(os.listdir(root_path)):
         c_path = os.path.join(root_path, class_name)
         new_c_path = os.path.join(new_path, class_name)
         resize_one_class(c_path, new_c_path)
