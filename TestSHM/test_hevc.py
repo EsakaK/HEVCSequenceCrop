@@ -17,12 +17,12 @@ def encode_one_sequence(s_path, s_path_ds, new_s_path):
     width = int(width)
     height = int(height)
     InputFile0 = s_path_ds
-    FrameRate0 = fps
+    FrameRate0 = int(fps)
     SourceWidth0 = width // 2
     SourceHeight0 = height // 2
 
     InputFile1 = s_path
-    FrameRate1 = fps
+    FrameRate1 = int(fps)
     SourceWidth1 = width
     SourceHeight1 = height
 
