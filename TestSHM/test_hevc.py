@@ -22,9 +22,7 @@ def psnr_between_pic(img1_path, img2_path):
     return quality_psnr
 
 
-def encode_one_sequence(s_path, s_path_ds, new_s_path, qp_list=None, gop_size=12, frame_to_encode=36):
-    if qp_list is None:
-        qp_list = [37, 32, 27, 22]
+def encode_one_sequence(s_path, s_path_ds, new_s_path, qp_list, gop_size=12, frame_to_encode=36):
     file_name = os.path.split(s_path)[1][:-4]
     name_split = file_name.split('_')
     if len(name_split) == 3:
@@ -136,7 +134,7 @@ def encode_one_sequence(s_path, s_path_ds, new_s_path, qp_list=None, gop_size=12
     return sequence_dict_base, sequence_dict_enhance, sequence_dict_full
 
 
-def calculate_sequence_psnr(gt_path, rec_path, qp_list=None, layer: str = '', gop_size=12):
+def calculate_sequence_psnr(gt_path, rec_path, qp_list, layer: str = '', gop_size=12):
     """
     Args:
         layer: BL or EL
@@ -147,8 +145,6 @@ def calculate_sequence_psnr(gt_path, rec_path, qp_list=None, layer: str = '', go
     Returns:
         several qp's corrosponding psnr quality
     """
-    if qp_list is None:
-        qp_list = [37, 32, 27, 22]
     if layer == '':
         layer = 'BL'
 
@@ -161,6 +157,10 @@ def calculate_sequence_psnr(gt_path, rec_path, qp_list=None, layer: str = '', go
         yuv2png_command = "ffmpeg -pix_fmt yuv444p -loglevel quiet -s {} -i {}.yuv -f image2 {}/im%05d.png"
         qp_dir_name = f'{qp}_{layer}'
         resolution = os.path.split(rec_path)[1].split('_')[1]
+        if layer == 'BL':
+            width = int(resolution.split('x')[0]) // 2
+            height = int(resolution.split('x')[1]) // 2
+            resolution = f'{width}x{height}'
 
         yuv2png_command = cd_command.format(rec_path) + mkdir_command.format(qp_dir_name) + yuv2png_command.format(resolution, rec_yuv, qp_dir_name)
         os.system(yuv2png_command)
@@ -198,6 +198,72 @@ def calculate_sequence_psnr(gt_path, rec_path, qp_list=None, layer: str = '', go
 
         print(f'QP:{qp} -> average all-psnr:{psnr_a_avg}')
     return sequence_dict
+
+
+def test_one_sequence(gt_path, gt_path_ds, s_path, s_path_ds, new_s_path, gop_size=12, frame_to_test=36, qp_list=None):
+    """
+    Args:
+        gt_path: ground truth
+        s_path: sequence path
+        s_path_ds: sequence path downsampled
+        new_s_path: new sequence path
+        gop_size: default 12
+        frame_to_test: default 36
+        qp_list: default 22,27,32,37
+
+    Returns:
+        None with hevc_base.json,hevc_enhance.json,hevc_full.json
+    """
+    if qp_list is None:
+        qp_list = [37, 32, 27, 22]
+    class_name = os.path.split(os.path.dirname(gt_path))[1].replace('Class', 'HEVC_')
+    sequence_name = os.path.split(gt_path)
+
+    hevc_dict_base = {}
+    hevc_dict_enhance = {}
+    hevc_dict_full = {}
+    class_dict_base = {}
+    class_dict_enhance = {}
+    class_dict_full = {}
+
+    s_dict_base, s_dict_enhance, s_dict_full = encode_one_sequence(s_path, s_path_ds, new_s_path, qp_list, gop_size, frame_to_test)
+    psnr_dict_base = calculate_sequence_psnr(gt_path_ds, new_s_path, qp_list, layer='BL')
+    psnr_dict_enhance = calculate_sequence_psnr(gt_path, new_s_path, qp_list, layer='EL')
+
+    for qp in qp_list:
+        qp_model = f'{qp}.model'
+        s_dict_base[qp_model]['ave_i_frame_quality'] = psnr_dict_base[qp_model]['ave_i_frame_quality']
+        s_dict_base[qp_model]['ave_p_frame_quality'] = psnr_dict_base[qp_model]['ave_p_frame_quality']
+        s_dict_base[qp_model]['ave_all_frame_quality'] = psnr_dict_base[qp_model]['ave_all_frame_quality']
+
+        s_dict_enhance[qp_model]['ave_i_frame_quality'] = psnr_dict_enhance[qp_model]['ave_i_frame_quality']
+        s_dict_enhance[qp_model]['ave_p_frame_quality'] = psnr_dict_enhance[qp_model]['ave_p_frame_quality']
+        s_dict_enhance[qp_model]['ave_all_frame_quality'] = psnr_dict_enhance[qp_model]['ave_all_frame_quality']
+
+        s_dict_full[qp_model]['ave_i_frame_quality'] = psnr_dict_enhance[qp_model]['ave_i_frame_quality']
+        s_dict_full[qp_model]['ave_p_frame_quality'] = psnr_dict_enhance[qp_model]['ave_p_frame_quality']
+        s_dict_full[qp_model]['ave_all_frame_quality'] = psnr_dict_enhance[qp_model]['ave_all_frame_quality']
+
+    # psnr calculate over
+    class_dict_base[sequence_name] = s_dict_base
+    class_dict_enhance[sequence_name] = s_dict_enhance
+    class_dict_full[sequence_name] = s_dict_full
+
+    # need to add more sequence############################
+    hevc_dict_base[class_name] = class_dict_base
+    hevc_dict_enhance[class_name] = class_dict_enhance
+    hevc_dict_full[class_dict_full] = class_dict_full
+
+    json_str = json.dumps(hevc_dict_base)
+    with open('json_results/hevc_base.json', 'w') as json_file:
+        json_file.write(json_str)
+    json_str = json.dumps(hevc_dict_enhance)
+    with open('json_results/hevc_enhance.json', 'w') as json_file:
+        json_file.write(json_str)
+    json_str = json.dumps(hevc_dict_full)
+    with open('json_results/hevc_full.json', 'w') as json_file:
+        json_file.write(json_str)
+
 
 
 if __name__ == '__main__':
