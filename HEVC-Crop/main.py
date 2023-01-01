@@ -7,11 +7,11 @@ from tqdm import tqdm
 
 
 def main(argv):
-    hevc_root_path = r"E:\dataset\HEVC_raw"  # the line you need to change
+    hevc_root_path = "/home/esakak/dataset/HEVC_yuv444_ds"  # the line you need to change
     cd_command = "cd {} && "
-    crop_command = "ffmpeg -pix_fmt yuv420p  -s {} -i  {} -vf crop={}:0:0 {}"
+    crop_command = "ffmpeg -pix_fmt yuv444p  -s {} -i  {} -vf crop={}:0:0 {}"
     mkdir_command = "mkdir {}"
-    yuv2png_command = "ffmpeg -pix_fmt yuv420p -s {} -i {}.yuv -f image2 {}/im%05d.png"
+    yuv2png_command = "ffmpeg -pix_fmt yuv444p -s {} -i {}.yuv -f image2 {}/im%05d.png"
     hevc_dirs = [dir_name for dir_name in os.listdir(hevc_root_path) if "Class" in dir_name]
     for dir_name in tqdm(hevc_dirs):
         print(dir_name)

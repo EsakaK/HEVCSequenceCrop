@@ -64,7 +64,11 @@ def encode_one_sequence(s_path, s_path_ds, new_s_path, qp_list, gop_size=12, fra
         qp_command = f' -q0 {qp} -q1 {qp}'
         output_command = f' -b {new_s_path}/{qp}.bin -o0 {new_s_path}/{qp}_BL.yuv -o1 {new_s_path}/{qp}_EL.yuv'
         full_command = base_command + gop_command + input_command + qp_command + output_command
-        output = os.popen(full_command).read()
+        p = os.popen(full_command)
+        while len(p.read()) == 0:
+            continue
+        output = p.read()
+        print(len(output))
         all_bitrate = re.findall(a_part, output)
         p_bitrate = re.findall(p_part, output)
         i_bitrate = re.findall(i_part, output)
@@ -217,7 +221,7 @@ def test_one_sequence(gt_path, gt_path_ds, s_path, s_path_ds, new_s_path, gop_si
     if qp_list is None:
         qp_list = [37, 32, 27, 22]
     class_name = os.path.split(os.path.dirname(gt_path))[1].replace('Class', 'HEVC_')
-    sequence_name = os.path.split(gt_path)
+    sequence_name = os.path.split(gt_path)[1]
 
     hevc_dict_base = {}
     hevc_dict_enhance = {}
@@ -265,8 +269,9 @@ def test_one_sequence(gt_path, gt_path_ds, s_path, s_path_ds, new_s_path, gop_si
         json_file.write(json_str)
 
 
-
 if __name__ == '__main__':
-    encode_one_sequence('/home/esakak/dataset/HEVC_yuv444/ClassD/BasketballPass_416x240_50.yuv',
-                        '/home/esakak/dataset/HEVC_yuv444_ds/ClassD/BasketballPass_208x120_50.yuv',
-                        '/home/esakak/dataset/HEVC_yuv444_compress/ClassD/BasketballPass_416x240_50')
+    test_one_sequence('/home/esakak/dataset/HEVC_yuv444_rgb/ClassD/BasketballPass_416x240_50',
+                      '/home/esakak/dataset/HEVC_yuv444_rgb_ds/ClassD/BasketballPass_416x240_50',
+                      '/home/esakak/dataset/HEVC_yuv444/ClassD/BasketballPass_416x240_50.yuv',
+                      '/home/esakak/dataset/HEVC_yuv444_ds/ClassD/BasketballPass_416x240_50.yuv',
+                      '/home/esakak/dataset/HEVC_yuv444_compress/ClassD/BasketballPass_416x240_50')
