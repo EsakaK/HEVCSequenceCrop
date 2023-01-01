@@ -7,7 +7,7 @@ command = 'SHMEnc -c cfg/low_delay_P_scalable.cfg -c cfg/spatial444.cfg -c cfg/l
 
 def encode_one_sequence(s_path, s_path_ds, new_s_path):
     qp_list = [48]
-    file_name = os.path.split(s_path)
+    file_name = os.path.split(s_path)[1][:-4]
     name_split = file_name.split('_')
     if len(name_split) == 3:
         name, resolution, fps = name_split
@@ -26,16 +26,17 @@ def encode_one_sequence(s_path, s_path_ds, new_s_path):
     SourceWidth1 = width
     SourceHeight1 = height
 
-    base_command = 'SHMEnc -c cfg/low_delay_P_scalable.cfg -c cfg/spatial444.cfg -c cfg/layers.cfg'
-    input_command = f' --InputFile0 {InputFile0} --FrameRate0 {FrameRate0} --SourceWidth0 {SourceWidth0} --SourceHeight0 {SourceHeight0}' \
-                    f' --InputFile1 {InputFile1} --FrameRate1 {FrameRate1} --SourceWidth1 {SourceWidth1} --SourceHeight1 {SourceHeight1}'
+    base_command = 'TAppEncoderStatic -c cfg/low_delay_P_scalable.cfg -c cfg/spatial444.cfg -c cfg/layers.cfg'
+    input_command = f' -i0 {InputFile0} -fr0 {FrameRate0} -wdt0 {SourceWidth0} -hgt0 {SourceHeight0}' \
+                    f' -i1 {InputFile1} -fr1 {FrameRate1} -wdt1 {SourceWidth1} -hgt1 {SourceHeight1}'
     if not os.path.exists(new_s_path):
         os.mkdir(new_s_path)
     for qp in qp_list:
-        qp_command = f' --QP0 {qp} --QP1 {qp}'
+        qp_command = f' -q0 {qp} -q1 {qp}'
         output_command = f' -b {new_s_path}/{qp}.bin -o0 {new_s_path}/{qp}_BL.yuv -o1 {new_s_path}/{qp}_EL.yuv'
         full_command = base_command + input_command + qp_command + output_command
         os.system(full_command)
 
 if __name__ == '__main__':
-    encode_one_sequence()
+    encode_one_sequence('/home/esakak/dataset/HEVC_yuv444/ClassD/BasketballPass_416x240_50.yuv','/home/esakak/dataset/HEVC_yuv444_ds/ClassD/BasketballPass_208x120_50.yuv',
+                        '/home/esakak/dataset/HEVC_yuv444_compress/ClassD/BasketballPass_416x240_50')
