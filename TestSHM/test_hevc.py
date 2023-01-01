@@ -158,7 +158,7 @@ def calculate_sequence_psnr(gt_path, rec_path, qp_list=None, layer: str = '', go
         rec_yuv = f'{qp}_{layer}.yuv'
         cd_command = "cd {} && "
         mkdir_command = "mkdir {} && "
-        yuv2png_command = "ffmpeg -pix_fmt yuv444p -s {} -i {}.yuv -f image2 {}/im%05d.png"
+        yuv2png_command = "ffmpeg -pix_fmt yuv444p -loglevel quiet -s {} -i {}.yuv -f image2 {}/im%05d.png"
         qp_dir_name = f'{qp}_{layer}'
         resolution = os.path.split(rec_path)[1].split('_')[1]
 
