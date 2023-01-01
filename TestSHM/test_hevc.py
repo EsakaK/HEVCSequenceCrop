@@ -52,10 +52,10 @@ def encode_one_sequence(s_path, s_path_ds, new_s_path):
         BL_p_bitrate = float(p_bitrate[0][1:].lstrip())
         EL_p_bitrate = float(p_bitrate[1][1:].lstrip())
 
-        BL_a_bpp = BL_a_bitrate * 1000 / (fps * SourceWidth0 * SourceHeight0)
-        BL_p_bpp = BL_p_bitrate * 1000 / (fps * SourceWidth0 * SourceHeight0)
-        EL_a_bpp = EL_a_bitrate * 1000 / (fps * SourceWidth1 * SourceHeight1)
-        EL_p_bpp = EL_p_bitrate * 1000 / (fps * SourceWidth1 * SourceHeight1)
+        BL_a_bpp = BL_a_bitrate * 1000 / (FrameRate0 * SourceWidth0 * SourceHeight0)
+        BL_p_bpp = BL_p_bitrate * 1000 / (FrameRate0 * SourceWidth0 * SourceHeight0)
+        EL_a_bpp = EL_a_bitrate * 1000 / (FrameRate1 * SourceWidth1 * SourceHeight1)
+        EL_p_bpp = EL_p_bitrate * 1000 / (FrameRate1 * SourceWidth1 * SourceHeight1)
 
         BL_a_bpps.append(BL_a_bpp)
         BL_p_bpps.append(BL_p_bpp)
