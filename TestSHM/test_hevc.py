@@ -60,7 +60,7 @@ def encode_one_sequence(s_path, s_path_ds, new_s_path, qp_list, gop_size=12, fra
     EL_p_bpps = []
     FL_a_bpps = []
     FL_p_bpps = []
-    for qp in qp_list:
+    for qp in tqdm(qp_list, desc='[Encoding] ', position=0):
         qp_command = f' -q0 {qp} -q1 {qp}'
         output_command = f' -b {new_s_path}/{qp}.bin -o0 {new_s_path}/{qp}_BL.yuv -o1 {new_s_path}/{qp}_EL.yuv > {new_s_path}/{qp}.log'
         full_command = base_command + gop_command + input_command + qp_command + output_command
@@ -92,12 +92,13 @@ def encode_one_sequence(s_path, s_path_ds, new_s_path, qp_list, gop_size=12, fra
         EL_p_bpps.append(EL_p_bpp)
         FL_a_bpps.append(FL_a_bpp)
         FL_p_bpps.append(FL_p_bpp)
+        print(f'\n|Enc QP:{qp}| --> Over!')
 
     # write to json
     sequence_dict_base = {}
     sequence_dict_enhance = {}
     sequence_dict_full = {}
-    for i in tqdm(range(len(qp_list)), ncols=10, position=0):
+    for i in range(len(qp_list)):
         model_dict_base = {}
         model_dict_enhance = {}
         model_dict_full = {}
@@ -132,7 +133,6 @@ def encode_one_sequence(s_path, s_path_ds, new_s_path, qp_list, gop_size=12, fra
         sequence_dict_base[f'{qp_list[i]}.model'] = model_dict_base
         sequence_dict_enhance[f'{qp_list[i]}.model'] = model_dict_enhance
         sequence_dict_full[f'{qp_list[i]}.model'] = model_dict_full
-        print(f'\n|Enc QP:{qp_list[i]}| --> Over!')
     return sequence_dict_base, sequence_dict_enhance, sequence_dict_full
 
 
@@ -151,7 +151,7 @@ def calculate_sequence_psnr(gt_path, rec_path, qp_list, layer: str = '', gop_siz
         layer = 'BL'
 
     sequence_dict = {}
-    for qp in tqdm(qp_list, ncols=10, position=0):
+    for qp in tqdm(qp_list, desc='[PSNR] ', position=0):
         model_dict = {}
         rec_yuv = f'{qp}_{layer}.yuv'
         cd_command = "cd {} && "
@@ -193,7 +193,7 @@ def calculate_sequence_psnr(gt_path, rec_path, qp_list, layer: str = '', gop_siz
             i_num = 0
         p_num = frame_num - i_num
         if i_num == 0:
-            psnr_i_avg = 0
+            psnr_i_avg = 0.0
         else:
             psnr_i_avg = psnr_i_sum / i_num
         psnr_p_avg = psnr_p_sum / p_num
@@ -281,4 +281,4 @@ if __name__ == '__main__':
                       '/home/esakak/dataset/HEVC_yuv444_rgb_ds/ClassD/BasketballPass_208x120_50',
                       '/home/esakak/dataset/HEVC_yuv444/ClassD/BasketballPass_416x240_50.yuv',
                       '/home/esakak/dataset/HEVC_yuv444_ds/ClassD/BasketballPass_208x120_50.yuv',
-                      '/home/esakak/dataset/HEVC_yuv444_compress/ClassD/BasketballPass_416x240_50',)
+                      '/home/esakak/dataset/HEVC_yuv444_compress/ClassD/BasketballPass_416x240_50', )
