@@ -62,13 +62,11 @@ def encode_one_sequence(s_path, s_path_ds, new_s_path, qp_list, gop_size=12, fra
     FL_p_bpps = []
     for qp in qp_list:
         qp_command = f' -q0 {qp} -q1 {qp}'
-        output_command = f' -b {new_s_path}/{qp}.bin -o0 {new_s_path}/{qp}_BL.yuv -o1 {new_s_path}/{qp}_EL.yuv'
+        output_command = f' -b {new_s_path}/{qp}.bin -o0 {new_s_path}/{qp}_BL.yuv -o1 {new_s_path}/{qp}_EL.yuv > {new_s_path}/{qp}.log'
         full_command = base_command + gop_command + input_command + qp_command + output_command
-        p = os.popen(full_command)
-        while len(p.read()) == 0:
-            continue
-        output = p.read()
-        print(len(output))
+        p = os.system(full_command)
+        with open(f'{new_s_path}/{qp}.log', 'r') as f:
+            output = f.read()
         all_bitrate = re.findall(a_part, output)
         p_bitrate = re.findall(p_part, output)
         i_bitrate = re.findall(i_part, output)
@@ -99,7 +97,7 @@ def encode_one_sequence(s_path, s_path_ds, new_s_path, qp_list, gop_size=12, fra
     sequence_dict_base = {}
     sequence_dict_enhance = {}
     sequence_dict_full = {}
-    for i in range(len(qp_list)):
+    for i in tqdm(range(len(qp_list)), ncols=10, position=0):
         model_dict_base = {}
         model_dict_enhance = {}
         model_dict_full = {}
@@ -134,7 +132,7 @@ def encode_one_sequence(s_path, s_path_ds, new_s_path, qp_list, gop_size=12, fra
         sequence_dict_base[f'{qp_list[i]}.model'] = model_dict_base
         sequence_dict_enhance[f'{qp_list[i]}.model'] = model_dict_enhance
         sequence_dict_full[f'{qp_list[i]}.model'] = model_dict_full
-
+        print(f'\n|Enc QP:{qp_list[i]}| --> Over!')
     return sequence_dict_base, sequence_dict_enhance, sequence_dict_full
 
 
@@ -158,7 +156,7 @@ def calculate_sequence_psnr(gt_path, rec_path, qp_list, layer: str = '', gop_siz
         rec_yuv = f'{qp}_{layer}.yuv'
         cd_command = "cd {} && "
         mkdir_command = "mkdir {} && "
-        yuv2png_command = "ffmpeg -pix_fmt yuv444p -loglevel quiet -s {} -i {}.yuv -f image2 {}/im%05d.png"
+        yuv2png_command = "ffmpeg -pix_fmt yuv444p -loglevel quiet -s {} -i {} -f image2 {}/im%05d.png"
         qp_dir_name = f'{qp}_{layer}'
         resolution = os.path.split(rec_path)[1].split('_')[1]
         if layer == 'BL':
@@ -166,14 +164,18 @@ def calculate_sequence_psnr(gt_path, rec_path, qp_list, layer: str = '', gop_siz
             height = int(resolution.split('x')[1]) // 2
             resolution = f'{width}x{height}'
 
-        yuv2png_command = cd_command.format(rec_path) + mkdir_command.format(qp_dir_name) + yuv2png_command.format(resolution, rec_yuv, qp_dir_name)
+        if not os.path.exists(os.path.join(rec_path, qp_dir_name)):
+            yuv2png_command = cd_command.format(rec_path) + mkdir_command.format(qp_dir_name) + yuv2png_command.format(resolution, rec_yuv,
+                                                                                                                       qp_dir_name)
+        else:
+            yuv2png_command = cd_command.format(rec_path) + yuv2png_command.format(resolution, rec_yuv, qp_dir_name)
         os.system(yuv2png_command)
         # calculate psnr with gt
         rec_img_names = os.listdir(os.path.join(rec_path, qp_dir_name))
         psnr_i_sum = 0
         psnr_p_sum = 0
         frame_num = len(rec_img_names)
-        print(f'QP:{qp} -> Frame num:{frame_num}')
+        print(f'\n|Layer:{layer}|QP:{qp}| --> Frame num:{frame_num}')
         for index, img_name in enumerate(rec_img_names):
             if index % gop_size == 0 and layer == 'BL':
                 img1_path = os.path.join(gt_path, img_name)
@@ -190,7 +192,10 @@ def calculate_sequence_psnr(gt_path, rec_path, qp_list, layer: str = '', gop_siz
         else:
             i_num = 0
         p_num = frame_num - i_num
-        psnr_i_avg = psnr_i_sum / i_num
+        if i_num == 0:
+            psnr_i_avg = 0
+        else:
+            psnr_i_avg = psnr_i_sum / i_num
         psnr_p_avg = psnr_p_sum / p_num
         psnr_a_avg = (psnr_i_sum + psnr_p_sum) / frame_num
 
@@ -200,7 +205,7 @@ def calculate_sequence_psnr(gt_path, rec_path, qp_list, layer: str = '', gop_siz
         model_dict['ave_all_frame_quality'] = psnr_a_avg
         sequence_dict[f'{qp}.model'] = model_dict
 
-        print(f'QP:{qp} -> average all-psnr:{psnr_a_avg}')
+        print(f'|Layer:{layer}|QP:{qp}| --> average all-psnr:{psnr_a_avg:.2f}')
     return sequence_dict
 
 
@@ -256,9 +261,11 @@ def test_one_sequence(gt_path, gt_path_ds, s_path, s_path_ds, new_s_path, gop_si
     # need to add more sequence############################
     hevc_dict_base[class_name] = class_dict_base
     hevc_dict_enhance[class_name] = class_dict_enhance
-    hevc_dict_full[class_dict_full] = class_dict_full
+    hevc_dict_full[class_name] = class_dict_full
 
     json_str = json.dumps(hevc_dict_base)
+    if not os.path.exists('json_results'):
+        os.mkdir('json_results')
     with open('json_results/hevc_base.json', 'w') as json_file:
         json_file.write(json_str)
     json_str = json.dumps(hevc_dict_enhance)
@@ -271,7 +278,7 @@ def test_one_sequence(gt_path, gt_path_ds, s_path, s_path_ds, new_s_path, gop_si
 
 if __name__ == '__main__':
     test_one_sequence('/home/esakak/dataset/HEVC_yuv444_rgb/ClassD/BasketballPass_416x240_50',
-                      '/home/esakak/dataset/HEVC_yuv444_rgb_ds/ClassD/BasketballPass_416x240_50',
+                      '/home/esakak/dataset/HEVC_yuv444_rgb_ds/ClassD/BasketballPass_208x120_50',
                       '/home/esakak/dataset/HEVC_yuv444/ClassD/BasketballPass_416x240_50.yuv',
-                      '/home/esakak/dataset/HEVC_yuv444_ds/ClassD/BasketballPass_416x240_50.yuv',
-                      '/home/esakak/dataset/HEVC_yuv444_compress/ClassD/BasketballPass_416x240_50')
+                      '/home/esakak/dataset/HEVC_yuv444_ds/ClassD/BasketballPass_208x120_50.yuv',
+                      '/home/esakak/dataset/HEVC_yuv444_compress/ClassD/BasketballPass_416x240_50',)
