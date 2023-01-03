@@ -64,7 +64,7 @@ def encode_one_sequence(s_path, s_path_ds, new_s_path, qp_list, gop_size=12, fra
         qp_command = f' -q0 {qp} -q1 {qp}'
         output_command = f' -b {new_s_path}/{qp}.bin -o0 {new_s_path}/{qp}_BL.yuv -o1 {new_s_path}/{qp}_EL.yuv > {new_s_path}/{qp}.log'
         full_command = base_command + gop_command + input_command + qp_command + output_command
-        p = os.system(full_command)
+        os.system(full_command)
         with open(f'{new_s_path}/{qp}.log', 'r') as f:
             output = f.read()
         all_bitrate = re.findall(a_part, output)
@@ -254,6 +254,8 @@ def test_one_sequence(gt_path, gt_path_ds, s_path, s_path_ds, new_s_path, gop_si
 def test_one_class(gt_path, gt_path_ds, c_path, c_path_ds, new_c_path, gop_size=12, frame_to_test=36, qp_list=None):
     class_name = os.path.split(gt_path)[1]
     sequence_names = os.listdir(gt_path)
+    sequence_names_ds = os.listdir(gt_path_ds)
+    sequence_names = zip(sequence_names_ds, sequence_names)
     if not os.path.exists(new_c_path):
         os.mkdir(new_c_path)
 
@@ -261,11 +263,11 @@ def test_one_class(gt_path, gt_path_ds, c_path, c_path_ds, new_c_path, gop_size=
     class_dict_enhance = {}
     class_dict_full = {}
     for s_name in sequence_names:
-        s_gt_path = os.path.join(gt_path, s_name)
-        s_gt_path_ds = os.path.join(gt_path_ds, s_name)
-        s_path = os.path.join(c_path, s_name + '.yuv')
-        s_path_ds = os.path.join(c_path_ds, s_name + '.yuv')
-        new_s_path = os.path.join(new_c_path, s_name)
+        s_gt_path = os.path.join(gt_path, s_name[0])
+        s_gt_path_ds = os.path.join(gt_path_ds, s_name[1])
+        s_path = os.path.join(c_path, s_name[0] + '.yuv')
+        s_path_ds = os.path.join(c_path_ds, s_name[1] + '.yuv')
+        new_s_path = os.path.join(new_c_path, s_name[0])
 
         print(f'\n\nTesting on {class_name}:{s_name}...')
         s_dict_base, s_dict_enhance, s_dict_full = test_one_sequence(s_gt_path, s_gt_path_ds, s_path, s_path_ds,
