@@ -82,8 +82,10 @@ def encode_one_sequence(s_path, s_path_ds, new_s_path, qp_list, gop_size=12, fra
         BL_i_bpp = BL_i_bitrare * 1000 / (FrameRate0 * SourceWidth0 * SourceHeight0)
         EL_a_bpp = EL_a_bitrate * 1000 / (FrameRate1 * SourceWidth1 * SourceHeight1)
         EL_p_bpp = EL_p_bitrate * 1000 / (FrameRate1 * SourceWidth1 * SourceHeight1)
-        FL_a_bpp = (BL_a_bpp * SourceWidth0 * SourceHeight0 + EL_a_bpp * SourceWidth1 * SourceHeight1) / (SourceWidth1 * SourceHeight1)
-        FL_p_bpp = (BL_p_bpp * SourceWidth0 * SourceHeight0 + EL_p_bpp * SourceWidth1 * SourceHeight1) / (SourceWidth1 * SourceHeight1)
+        FL_a_bpp = (BL_a_bpp * SourceWidth0 * SourceHeight0 + EL_a_bpp * SourceWidth1 * SourceHeight1) / (
+                SourceWidth1 * SourceHeight1)
+        FL_p_bpp = (BL_p_bpp * SourceWidth0 * SourceHeight0 + EL_p_bpp * SourceWidth1 * SourceHeight1) / (
+                SourceWidth1 * SourceHeight1)
 
         BL_a_bpps.append(BL_a_bpp)
         BL_p_bpps.append(BL_p_bpp)
@@ -165,8 +167,9 @@ def calculate_sequence_psnr(gt_path, rec_path, qp_list, layer: str = '', gop_siz
             resolution = f'{width}x{height}'
 
         if not os.path.exists(os.path.join(rec_path, qp_dir_name)):
-            yuv2png_command = cd_command.format(rec_path) + mkdir_command.format(qp_dir_name) + yuv2png_command.format(resolution, rec_yuv,
-                                                                                                                       qp_dir_name)
+            yuv2png_command = cd_command.format(rec_path) + mkdir_command.format(qp_dir_name) + yuv2png_command.format(
+                resolution, rec_yuv,
+                qp_dir_name)
         else:
             yuv2png_command = cd_command.format(rec_path) + yuv2png_command.format(resolution, rec_yuv, qp_dir_name)
         os.system(yuv2png_command)
@@ -223,19 +226,10 @@ def test_one_sequence(gt_path, gt_path_ds, s_path, s_path_ds, new_s_path, gop_si
     Returns:
         None with hevc_base.json,hevc_enhance.json,hevc_full.json
     """
-    if qp_list is None:
-        qp_list = [37, 32, 27, 22]
-    class_name = os.path.split(os.path.dirname(gt_path))[1].replace('Class', 'HEVC_')
-    sequence_name = os.path.split(gt_path)[1]
-
-    hevc_dict_base = {}
-    hevc_dict_enhance = {}
-    hevc_dict_full = {}
-    class_dict_base = {}
-    class_dict_enhance = {}
-    class_dict_full = {}
-
-    s_dict_base, s_dict_enhance, s_dict_full = encode_one_sequence(s_path, s_path_ds, new_s_path, qp_list, gop_size, frame_to_test)
+    if not os.path.exists(new_s_path):
+        os.mkdir(new_s_path)
+    s_dict_base, s_dict_enhance, s_dict_full = encode_one_sequence(s_path, s_path_ds, new_s_path, qp_list, gop_size,
+                                                                   frame_to_test)
     psnr_dict_base = calculate_sequence_psnr(gt_path_ds, new_s_path, qp_list, layer='BL')
     psnr_dict_enhance = calculate_sequence_psnr(gt_path, new_s_path, qp_list, layer='EL')
 
@@ -254,18 +248,62 @@ def test_one_sequence(gt_path, gt_path_ds, s_path, s_path_ds, new_s_path, gop_si
         s_dict_full[qp_model]['ave_all_frame_quality'] = psnr_dict_enhance[qp_model]['ave_all_frame_quality']
 
     # psnr calculate over
-    class_dict_base[sequence_name] = s_dict_base
-    class_dict_enhance[sequence_name] = s_dict_enhance
-    class_dict_full[sequence_name] = s_dict_full
+    return s_dict_base, s_dict_enhance, s_dict_full
 
-    # need to add more sequence############################
-    hevc_dict_base[class_name] = class_dict_base
-    hevc_dict_enhance[class_name] = class_dict_enhance
-    hevc_dict_full[class_name] = class_dict_full
 
-    json_str = json.dumps(hevc_dict_base)
+def test_one_class(gt_path, gt_path_ds, c_path, c_path_ds, new_c_path, gop_size=12, frame_to_test=36, qp_list=None):
+    class_name = os.path.split(gt_path)[1]
+    sequence_names = os.listdir(gt_path)
+    if not os.path.exists(new_c_path):
+        os.mkdir(new_c_path)
+
+    class_dict_base = {}
+    class_dict_enhance = {}
+    class_dict_full = {}
+    for s_name in sequence_names:
+        s_gt_path = os.path.join(gt_path, s_name)
+        s_gt_path_ds = os.path.join(gt_path_ds, s_name)
+        s_path = os.path.join(c_path, s_name + '.yuv')
+        s_path_ds = os.path.join(c_path_ds, s_name + '.yuv')
+        new_s_path = os.path.join(new_c_path, s_name)
+
+        print(f'\n\nTesting on {class_name}:{s_name}...')
+        s_dict_base, s_dict_enhance, s_dict_full = test_one_sequence(s_gt_path, s_gt_path_ds, s_path, s_path_ds,
+                                                                     new_s_path, gop_size, frame_to_test, qp_list)
+        class_dict_base[s_name] = s_dict_base
+        class_dict_enhance[s_name] = s_dict_enhance
+        class_dict_full[s_name] = s_dict_full
+
+    return class_dict_base, class_dict_enhance, class_dict_full
+
+
+def test_hevc(gt_path, gt_path_ds, yuv_path, yuv_path_ds, rec_path, gop_size=12, frame_to_test=36, class_list='BCDE',
+              qp_list=None):
+    if qp_list is None:
+        qp_list = [37, 32, 27, 22]
+    class_names = [f'Class{index}' for index in class_list]
+
+    hevc_dict_base = {}
+    hevc_dict_enhance = {}
+    hevc_dict_full = {}
+    for class_name in class_names:
+        c_gt_path = os.path.join(gt_path, class_name)
+        c_gt_path_ds = os.path.join(gt_path_ds, class_name)
+        c_path = os.path.join(yuv_path, class_name)
+        c_path_ds = os.path.join(yuv_path_ds, class_name)
+        new_c_path = os.path.join(rec_path, class_name)
+
+        class_dict_base, class_dict_enhance, class_dict_full = test_one_class(c_gt_path, c_gt_path_ds, c_path,
+                                                                              c_path_ds, new_c_path, gop_size,
+                                                                              frame_to_test)
+        hevc_class_name = class_name.replace('Class', 'HEVC_')
+        hevc_dict_base[hevc_class_name] = class_dict_base
+        hevc_dict_enhance[hevc_class_name] = class_dict_enhance
+        hevc_dict_full[hevc_class_name] = class_dict_full
+
     if not os.path.exists('json_results'):
         os.mkdir('json_results')
+    json_str = json.dumps(hevc_dict_base)
     with open('json_results/hevc_base.json', 'w') as json_file:
         json_file.write(json_str)
     json_str = json.dumps(hevc_dict_enhance)
@@ -274,11 +312,21 @@ def test_one_sequence(gt_path, gt_path_ds, s_path, s_path_ds, new_s_path, gop_si
     json_str = json.dumps(hevc_dict_full)
     with open('json_results/hevc_full.json', 'w') as json_file:
         json_file.write(json_str)
+    print('Testing Over!')
+
+
+def test():
+    gt_path = '/home/esakak/dataset/HEVC_yuv444_rgb'
+    gt_path_ds = '/home/esakak/dataset/HEVC_yuv444_rgb_ds'
+    yuv_path = '/home/esakak/dataset/HEVC_yuv444'
+    yuv_path_ds = '/home/esakak/dataset/HEVC_yuv444_ds'
+    rec_path = '/home/esakak/dataset/HEVC_yuv444_compress'
+    gop_size = 12
+    frame_to_encode = 36
+    qp_list = None
+    class_list = 'D'
+    test_hevc(gt_path, gt_path_ds, yuv_path, yuv_path_ds, rec_path, gop_size, frame_to_encode, class_list, qp_list)
 
 
 if __name__ == '__main__':
-    test_one_sequence('/home/esakak/dataset/HEVC_yuv444_rgb/ClassD/BasketballPass_416x240_50',
-                      '/home/esakak/dataset/HEVC_yuv444_rgb_ds/ClassD/BasketballPass_208x120_50',
-                      '/home/esakak/dataset/HEVC_yuv444/ClassD/BasketballPass_416x240_50.yuv',
-                      '/home/esakak/dataset/HEVC_yuv444_ds/ClassD/BasketballPass_208x120_50.yuv',
-                      '/home/esakak/dataset/HEVC_yuv444_compress/ClassD/BasketballPass_416x240_50', )
+    test()
