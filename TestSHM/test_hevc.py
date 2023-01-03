@@ -255,6 +255,8 @@ def test_one_class(gt_path, gt_path_ds, c_path, c_path_ds, new_c_path, gop_size=
     class_name = os.path.split(gt_path)[1]
     sequence_names = os.listdir(gt_path)
     sequence_names_ds = os.listdir(gt_path_ds)
+    sequence_names_ds.sort()
+    sequence_names.sort()
     sequence_names = zip(sequence_names_ds, sequence_names)
     if not os.path.exists(new_c_path):
         os.mkdir(new_c_path)
