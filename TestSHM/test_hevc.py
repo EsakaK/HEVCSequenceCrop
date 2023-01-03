@@ -274,9 +274,9 @@ def test_one_class(gt_path, gt_path_ds, c_path, c_path_ds, new_c_path, gop_size=
         print(f'\n\nTesting on {class_name}:{s_name}...')
         s_dict_base, s_dict_enhance, s_dict_full = test_one_sequence(s_gt_path, s_gt_path_ds, s_path, s_path_ds,
                                                                      new_s_path, gop_size, frame_to_test, qp_list)
-        class_dict_base[s_name] = s_dict_base
-        class_dict_enhance[s_name] = s_dict_enhance
-        class_dict_full[s_name] = s_dict_full
+        class_dict_base[s_name[1]] = s_dict_base
+        class_dict_enhance[s_name[1]] = s_dict_enhance
+        class_dict_full[s_name[1]] = s_dict_full
 
     return class_dict_base, class_dict_enhance, class_dict_full
 
