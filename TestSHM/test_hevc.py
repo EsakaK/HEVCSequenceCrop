@@ -263,11 +263,11 @@ def test_one_class(gt_path, gt_path_ds, c_path, c_path_ds, new_c_path, gop_size=
     class_dict_enhance = {}
     class_dict_full = {}
     for s_name in sequence_names:
-        s_gt_path = os.path.join(gt_path, s_name[0])
-        s_gt_path_ds = os.path.join(gt_path_ds, s_name[1])
-        s_path = os.path.join(c_path, s_name[0] + '.yuv')
-        s_path_ds = os.path.join(c_path_ds, s_name[1] + '.yuv')
-        new_s_path = os.path.join(new_c_path, s_name[0])
+        s_gt_path = os.path.join(gt_path, s_name[1])
+        s_gt_path_ds = os.path.join(gt_path_ds, s_name[0])
+        s_path = os.path.join(c_path, s_name[1] + '.yuv')
+        s_path_ds = os.path.join(c_path_ds, s_name[0] + '.yuv')
+        new_s_path = os.path.join(new_c_path, s_name[1])
 
         print(f'\n\nTesting on {class_name}:{s_name}...')
         s_dict_base, s_dict_enhance, s_dict_full = test_one_sequence(s_gt_path, s_gt_path_ds, s_path, s_path_ds,
