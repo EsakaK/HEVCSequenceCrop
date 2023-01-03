@@ -295,7 +295,7 @@ def test_hevc(gt_path, gt_path_ds, yuv_path, yuv_path_ds, rec_path, gop_size=12,
 
         class_dict_base, class_dict_enhance, class_dict_full = test_one_class(c_gt_path, c_gt_path_ds, c_path,
                                                                               c_path_ds, new_c_path, gop_size,
-                                                                              frame_to_test)
+                                                                              frame_to_test,qp_list)
         hevc_class_name = class_name.replace('Class', 'HEVC_')
         hevc_dict_base[hevc_class_name] = class_dict_base
         hevc_dict_enhance[hevc_class_name] = class_dict_enhance
