@@ -290,6 +290,8 @@ def test_hevc(gt_path, gt_path_ds, yuv_path, yuv_path_ds, rec_path, gop_size=12,
     hevc_dict_base = {}
     hevc_dict_enhance = {}
     hevc_dict_full = {}
+    if not os.path.exists(rec_path):
+        os.mkdir(rec_path)
     for class_name in class_names:
         c_gt_path = os.path.join(gt_path, class_name)
         c_gt_path_ds = os.path.join(gt_path_ds, class_name)
@@ -324,11 +326,11 @@ def test():
     gt_path_ds = '/home/esakak/dataset/For420T/HEVC_gt_ds'
     yuv_path = '/home/esakak/dataset/For420T/HEVC_yuv420'
     yuv_path_ds = '/home/esakak/dataset/For420T/HEVC_yuv420_ds'
-    rec_path = '/home/esakak/dataset/For420T/HEVC_compress_D36'
+    rec_path = '/home/esakak/dataset/For420T/HEVC_compress_B36'
     gop_size = 12
     frame_to_encode = 36
-    qp_list = [47, 42, 37, 32, 27]
-    class_list = 'D'
+    qp_list = [42, 37, 32, 27]
+    class_list = 'B'
     test_hevc(gt_path, gt_path_ds, yuv_path, yuv_path_ds, rec_path, gop_size, frame_to_encode, class_list, qp_list)
 
 

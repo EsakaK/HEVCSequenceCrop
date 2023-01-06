@@ -305,16 +305,16 @@ def test_hevc(gt_path, gt_path_ds, yuv_path, yuv_path_ds, rec_path, gop_size=12,
         hevc_dict_enhance[hevc_class_name] = class_dict_enhance
         hevc_dict_full[hevc_class_name] = class_dict_full
 
-    if not os.path.exists('json_results'):
-        os.mkdir('json_results')
+    if not os.path.exists('json_results_420'):
+        os.mkdir('json_results_420')
     json_str = json.dumps(hevc_dict_base)
-    with open('json_results/hevc_base.json', 'w') as json_file:
+    with open('json_results_420/hevc_base.json', 'w') as json_file:
         json_file.write(json_str)
     json_str = json.dumps(hevc_dict_enhance)
-    with open('json_results/hevc_enhance.json', 'w') as json_file:
+    with open('json_results_420/hevc_enhance.json', 'w') as json_file:
         json_file.write(json_str)
     json_str = json.dumps(hevc_dict_full)
-    with open('json_results/hevc_full.json', 'w') as json_file:
+    with open('json_results_420/hevc_full.json', 'w') as json_file:
         json_file.write(json_str)
     print('Testing Over!')
 
