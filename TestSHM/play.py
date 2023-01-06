@@ -41,7 +41,11 @@
 # EL_p_bitrate = float(p_bitrate[1][1:].lstrip())
 #
 # print(BL_a_bitrate, BL_p_bitrate, EL_a_bitrate, EL_p_bitrate)
-import os
-path = '/home/esakak/dataset/HEVC_yuv444/ClassD/BasketballPass_416x240_50'
-a = os.path.split(os.path.dirname(path))[1]
+
+import subprocess
+
+p = subprocess.Popen('dir', shell=True)
+p.wait()
+a = p.stdout.readlines()
 print(a)
+# print(a.stdout)

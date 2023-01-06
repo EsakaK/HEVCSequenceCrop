@@ -10,7 +10,7 @@ def compose_one_sequence(s_path, new_s_path):
     else:
         name, resolution_raw, fps, _ = name_splits
     cd_command = f'cd {s_path}'
-    compose_command = f'ffmpeg -r {fps} -i im%5d.png -pix_fmt yuv444p -s {resolution_raw} {new_s_path}.yuv'
+    compose_command = f'ffmpeg -r {fps} -i im%5d.png -pix_fmt yuv420p -s {resolution_raw} {new_s_path}.yuv'
     full_command = cd_command + '&' + compose_command
     os.system(full_command)
     print(name)
@@ -35,4 +35,4 @@ def compose_hevc(root_path, new_path):
 
 
 if __name__ == '__main__':
-    compose_hevc('E:\dataset\HEVC', 'E:\dataset\HEVC_yuv444')
+    compose_hevc('E:\dataset\For420T\HEVC_ds', 'E:\dataset\For420T\HEVC_yuv420_ds')
