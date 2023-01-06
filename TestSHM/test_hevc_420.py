@@ -42,7 +42,7 @@ def encode_one_sequence(s_path, s_path_ds, new_s_path, qp_list, gop_size=12, fra
     SourceWidth1 = width
     SourceHeight1 = height
 
-    base_command = 'TAppEncoderStatic -c cfg/low_delay_P_scalable.cfg -c cfg/spatial444.cfg -c cfg/layers.cfg'
+    base_command = 'TAppEncoderStatic -c cfg/low_delay_P_420.cfg -c cfg/spatial420.cfg -c cfg/layers.cfg'
     gop_command = f' -ip0 {gop_size} -ip1 {gop_size} -f {frame_to_encode}'
     input_command = f' -i0 {InputFile0} -fr0 {FrameRate0} -wdt0 {SourceWidth0} -hgt0 {SourceHeight0}' \
                     f' -i1 {InputFile1} -fr1 {FrameRate1} -wdt1 {SourceWidth1} -hgt1 {SourceHeight1}'
@@ -158,7 +158,7 @@ def calculate_sequence_psnr(gt_path, rec_path, qp_list, layer: str = '', gop_siz
         rec_yuv = f'{qp}_{layer}.yuv'
         cd_command = "cd {} && "
         mkdir_command = "mkdir {} && "
-        yuv2png_command = "ffmpeg -pix_fmt yuv444p -loglevel quiet -s {} -i {} -f image2 {}/im%05d.png"
+        yuv2png_command = "ffmpeg -pix_fmt yuv420p -loglevel quiet -s {} -i {} -f image2 {}/im%05d.png"
         qp_dir_name = f'{qp}_{layer}'
         resolution = os.path.split(rec_path)[1].split('_')[1]
         if layer == 'BL':
